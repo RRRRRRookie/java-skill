@@ -83,8 +83,8 @@ public class ThreadLocalDemoTest {
     void test_jdk_with_ttl_thread_local() {
         final String parentValue = "parent";
         ThreadLocal<String> parentThreadLocal = TransmittableThreadLocal.withInitial(() -> parentValue);
-        ExecutorService executorService = TtlExecutors.getTtlExecutorService(Executors.newFixedThreadPool(5));
-        int total = 20;
+        ExecutorService executorService = TtlExecutors.getTtlExecutorService(Executors.newFixedThreadPool(30));
+        int total = 100;
         CountDownLatch countDownLatch = new CountDownLatch(total);
         for (int i = 0; i < total; i++) {
             String currentValue = String.format("%s%s", parentValue, i);
@@ -92,16 +92,17 @@ public class ThreadLocalDemoTest {
             log.info("parent thread {} value is {}", Thread.currentThread().getName(), parentThreadLocal.get());
             executorService.execute(() -> {
                 try {
-                    TimeUnit.MILLISECONDS.sleep(50);
+                    TimeUnit.MILLISECONDS.sleep(1000);
                     log.info("current thread {} parent value is  {}", Thread.currentThread().getName(), parentThreadLocal.get());
                     log.info("current thread {} value is {}, compare value is {}", Thread.currentThread().getName(), parentThreadLocal.get(), Objects.equals(parentThreadLocal.get(), currentValue));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
-                    parentThreadLocal.remove();
+
                     countDownLatch.countDown();
                 }
             });
+            parentThreadLocal.remove();
         }
         countDownLatch.await();
     }
