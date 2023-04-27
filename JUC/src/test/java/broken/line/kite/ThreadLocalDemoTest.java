@@ -93,14 +93,44 @@ public class ThreadLocalDemoTest {
             executorService.execute(() -> {
                 try {
                     TimeUnit.MILLISECONDS.sleep(50);
+                    log.info("current thread {} parent value is  {}", Thread.currentThread().getName(), parentThreadLocal.get());
+                    log.info("current thread {} value is {}, compare value is {}", Thread.currentThread().getName(), parentThreadLocal.get(), Objects.equals(parentThreadLocal.get(), currentValue));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    parentThreadLocal.remove();
+                    countDownLatch.countDown();
+                }
+            });
+        }
+        countDownLatch.await();
+    }
+
+    @Test
+    @SneakyThrows
+    void test_mock_with_inheritable_thread_local() {
+        final String parentValue = "parent";
+        ThreadLocal<String> parentThreadLocal = InheritableThreadLocal.withInitial(() -> parentValue);
+        ExecutorService executorService = Executors.newFixedThreadPool(30);
+        int total = 100;
+        CountDownLatch countDownLatch = new CountDownLatch(total);
+        for (int i = 0; i < total; i++) {
+            String currentValue = String.format("%s%s", parentValue, i);
+            parentThreadLocal.set(currentValue);
+            log.info("parent thread {} value is {}", Thread.currentThread().getName(), parentThreadLocal.get());
+            executorService.execute(() -> {
+                try {
+                    parentThreadLocal.set(currentValue);
+                    TimeUnit.MILLISECONDS.sleep(1000);
+                    log.info("current thread {} value is {}, compare value is {}", Thread.currentThread().getName(), parentThreadLocal.get(), Objects.equals(parentThreadLocal.get(), currentValue));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {
                     countDownLatch.countDown();
                 }
-                log.info("current thread {} parent value is  {}", Thread.currentThread().getName(), parentThreadLocal.get());
-                log.info("current thread {} value is {}, compare value is {}", Thread.currentThread().getName(), parentThreadLocal.get(), Objects.equals(parentThreadLocal.get(), currentValue));
+
             });
+            parentThreadLocal.remove();
         }
         countDownLatch.await();
     }
