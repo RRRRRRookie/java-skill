@@ -112,7 +112,7 @@ public class ThreadLocalDemoTest {
     void test_mock_with_inheritable_thread_local() {
         final String parentValue = "parent";
         ThreadLocal<String> parentThreadLocal = InheritableThreadLocal.withInitial(() -> parentValue);
-        ExecutorService executorService = Executors.newFixedThreadPool(30);
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
         int total = 100;
         CountDownLatch countDownLatch = new CountDownLatch(total);
         for (int i = 0; i < total; i++) {
@@ -122,7 +122,7 @@ public class ThreadLocalDemoTest {
             executorService.execute(() -> {
                 try {
                     parentThreadLocal.set(currentValue);
-                    TimeUnit.MILLISECONDS.sleep(1000);
+                    TimeUnit.MILLISECONDS.sleep(2000);
                     log.info("current thread {} value is {}, compare value is {}", Thread.currentThread().getName(), parentThreadLocal.get(), Objects.equals(parentThreadLocal.get(), currentValue));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
