@@ -7,6 +7,8 @@ package broken.line.kite;
 public class ThreadDemo {
 
     public static void main(String[] args) {
+//        Thread
+        ThreadLocal<String> current = new ThreadLocal<>();
 
     }
 
